@@ -1,0 +1,4 @@
+torch
+torchaudio
+openai-whisper @ git+https://github.com/openai/whisper.git
+flask
