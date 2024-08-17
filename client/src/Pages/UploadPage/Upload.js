@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import image from '../../assets/download.png'
+import download from '../../assets/download.png';
+import upload from '../../assets/upload.png';
 const Upload = () => {
   const [isRecording, setIsRecording] = useState(false);  // for conditional render
   const [videoURL, setVideoURL] = useState(null);
@@ -7,14 +8,18 @@ const Upload = () => {
   const mediaRecorderRef = useRef(null);
   const recordedChunks = useRef([]);
 
+  const sendRecording = async() => {
+    if (!videoURL){
+
+    }
+  }
+
   const startRecording = async () => {
     setIsRecording(true);
     recordedChunks.current = [];
 
     // request camera access
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    // videoRef.current.srcObject = stream;
-    // videoRef.current.play();
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play();
@@ -55,7 +60,8 @@ const Upload = () => {
       }
     }
   };
-
+  // There is only a URL if a video has been recorded already
+  // if a video is recorded and a new one isn't being recorded, show the video for playback
   return (
     <div>
       
@@ -81,26 +87,37 @@ const Upload = () => {
           />
         </div>
       )}
-      <div className="flex flex-col justify-center items-center h-16 w-16 mx-auto my-4">
+      
+      <div className="flex justify-center items-end h-16 w-full mx-auto my-4 px-4">
         {isRecording ? (
-          <div className="flex flex-col items-center cursor-pointer" onClick={stopRecording}>
+          <div className="flex flex-col items-center cursor-pointer hover:bg-slate-50 rounded-md transition-colors duration-300 p-2" onClick={stopRecording}>
             <img 
-              src={image} 
+              src={download} 
               alt="Stop Recording" 
               className="h-8 w-8"
             />
             <span className="text-black ml-2">Stop Recording</span>
         </div>
         ) : (
-          <div className="flex flex-col items-center cursor-pointer" onClick={startRecording}>
+          <div className="flex flex-col items-center cursor-pointer hover:bg-slate-100 rounded-md transition-colors duration-200 p-2" onClick={startRecording}>
             <img 
-              src={image} 
+              src={download} 
               alt="Start Recording" 
               className="h-8 w-8"
             />
             <span className="text-black ml-2">Start Recording</span>
         </div>
         )}
+
+        <div className="flex flex-col items-center cursor-pointer hover:bg-slate-100 rounded-md transition-colors duration-200 p-2" onClick={sendRecording}>
+          <img
+            src={upload}
+            alt="upload"
+            className="h-8 w-8"
+          />
+          <span className="text-black ml-2">Upload</span>
+
+        </div>
       </div>
     </div>
   );
