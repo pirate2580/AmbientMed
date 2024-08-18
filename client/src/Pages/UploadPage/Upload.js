@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import download from '../../assets/download.png';
+import download from '../../assets/record.svg';
 import upload from '../../assets/upload.png';
 const Upload = () => {
   const [isRecording, setIsRecording] = useState(false);  // for conditional render
@@ -10,7 +10,26 @@ const Upload = () => {
 
   const sendRecording = async() => {
     if (!videoURL){
+      return;
+    }
+    const blob = await fetch(videoURL).then(r => r.blob());
+    const formData = new FormData();
+    formData.append("video", blob, 'recording.webm');
 
+    try{
+      const response = await fetch('http://localhost:3001/appointments', {
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Video uploaded successfully!", data);
+      } else {
+        console.error("Failed to upload video.");
+      }
+    }
+    catch (error) {
+      console.error("Error uploading video:", error)
     }
   }
 
@@ -63,32 +82,33 @@ const Upload = () => {
   // There is only a URL if a video has been recorded already
   // if a video is recorded and a new one isn't being recorded, show the video for playback
   return (
-    <div>
+    <div className="flex flex-col h-screen">
+      
       
       {videoURL && !isRecording? (
-        <div>
-          <h3>Recorded Video:</h3>
+        <div className="flex items-center flex-col justify-center bg-black flex-grow">
+          <h3 className=" w-full bg-white font-bold">Recorded Video</h3>
           <video
             key="recordedVideo" // This key helps React uniquely identify the component
             src={videoURL}
-            className="w-full h-[85vh] object-cover"
+            className="w-[90vw] h-[80vh] min-h-[400px] object-cover"
             controls
           />
         </div>
       ): (
-        <div>        
-          <h3>{isRecording ? 'Recording...' : 'Start Recording Video:'}</h3>
+        <div className="flex items-center flex-col justify-center bg-black flex-grow">        
+          <h3 className="w-full bg-white font-bold">{isRecording ? 'Recording...' : 'Start Recording Your Appointment'}</h3>
           <video
             key="liveVideo" // This key helps React uniquely identify the component
             ref={videoRef}
-            className="w-full h-[85vh] bg-black object-cover"
+            className="w-[90vw] h-[80vh] min-h-[400px] object-cover bg-black"
             autoPlay
             muted
           />
         </div>
       )}
       
-      <div className="flex justify-center items-end h-16 w-full mx-auto my-4 px-4">
+      <div className="bg-slate-300 w-full h-[15vh] flex justify-center items-end mx-auto px-4">
         {isRecording ? (
           <div className="flex flex-col items-center cursor-pointer hover:bg-slate-50 rounded-md transition-colors duration-300 p-2" onClick={stopRecording}>
             <img 
@@ -108,16 +128,25 @@ const Upload = () => {
             <span className="text-black ml-2">Start Recording</span>
         </div>
         )}
-
-        <div className="flex flex-col items-center cursor-pointer hover:bg-slate-100 rounded-md transition-colors duration-200 p-2" onClick={sendRecording}>
-          <img
-            src={upload}
-            alt="upload"
-            className="h-8 w-8"
-          />
-          <span className="text-black ml-2">Upload</span>
-
+        {videoURL ? (
+          <div className="flex flex-col items-center cursor-pointer hover:bg-slate-100 rounded-md transition-colors duration-200 p-2" onClick={sendRecording}>
+            <img
+              src={upload}
+              alt="upload"
+              className="h-8 w-8"
+            />
+            <span className="text-black ml-1 mt-1">Upload</span>
         </div>
+        ): (
+          <div className="flex flex-col items-center cursor-pointer hover:bg-slate-100 rounded-md transition-colors duration-200 p-2" onClick={sendRecording}>
+            <img
+              src={upload}
+              alt="upload"
+              className="h-8 w-8"
+            />
+            <span className="text-red-500 ml-1 mt-1">Upload</span>
+          </div>
+        )}
       </div>
     </div>
   );

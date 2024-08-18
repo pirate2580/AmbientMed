@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, abort, send_file
 from datetime import datetime
 from io import BytesIO
 from app.models.appointment_model import Appointment  # Import the Appointment model
+from app.services.transcribe import process_video
 
 # Define the Blueprint for the appointment controller
 appointment_bp = Blueprint('appointment_bp', __name__)
@@ -11,13 +12,14 @@ appointment_model = Appointment()
 
 @appointment_bp.route('/', methods=['POST'])
 def create_appointment():
+    # front end sends raw video to be processed by whisper and pyannote?
     data = request.form.to_dict()
+
+    video_file = request.files['video']
+    data['video'] = video_file.read()
     
-    # Check for the video file in the request
-    if 'video' in request.files:
-        video_file = request.files['video']
-        data['video'] = video_file.read()  # Read video file content as bytes
-    
+    process_video(video_file)
+
     # Convert the appointment_date from string to datetime object
     try:
         data['appointment_date'] = datetime.fromisoformat(data['appointment_date'])

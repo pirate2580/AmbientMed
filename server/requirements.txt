@@ -4,3 +4,13 @@ openai-whisper @ git+https://github.com/openai/whisper.git
 flask
 pymongo
 python-dotenv
+pyAudioAnalysis
+hmmlearn
+eyed3
+pydub
+imblearn
+plotly
+pyannote.audio
+langchain
+moviepy
+pydub
