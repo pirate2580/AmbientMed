@@ -14,3 +14,7 @@ pyannote.audio
 langchain
 moviepy
 pydub
+langchain-openai
+tiktoken
+langgraph
+opencv-python

@@ -1,11 +1,26 @@
+"""File for appointment model in MongoDB"""
+
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from gridfs import GridFS
-# from datetime import datetime
+from datetime import datetime
 
 class Appointment:
+
+    FIELDS = {
+        'transcription': list,
+        'video': bytes,
+        'subjective': str,
+        'objective': str,
+        'assessment': str,
+        'plan': str,
+        'appointment_name': str,
+        'appointment_date': datetime,
+        'video_description': str,
+    }
+
     def __init__(self):
         # Initialize the MongoDB client and select the database and collection
         load_dotenv()
@@ -13,40 +28,52 @@ class Appointment:
         self.db = self.client['AmbientMed']
         self.collection = self.db['Appointments']
         self.fs = GridFS(self.db)
+    
+    def validate(self, data):
+        for field, field_type in self.FIELDS.items():
+            if field not in data:
+                raise ValueError(f"Missing required field: {field}")
+            if not isinstance(data[field], field_type):
+                raise TypeError(f"Field '{field}' must be of type {field_type.__name__}")
+        
+        for field in data:
+            if field not in self.FIELD:
+                raise ValueError(f"Extra field: {field}")
 
     def create(self, data):
+        # self.validate(data)
+
         # Check if video file is in data and save it to GridFS
-        if 'video' in data and isinstance(data['video'], bytes):
-            video_id = self.fs.put(data['video'], filename='appointment_video.mp4')
-            data['video'] = video_id
-        
-        # Insert a new appointment document into the collection
+        video_id = self.fs.put(data['video'], filename='appointment_video.mp4')
+        data['video'] = video_id
         result = self.collection.insert_one(data)
         return str(result.inserted_id)
 
     def get_by_id(self, appointment_id):
+
         appointment = self.collection.find_one({"_id": ObjectId(appointment_id)})
-        
         # Retrieve the video from GridFS if it exists
-        if appointment and 'video' in appointment:
+        if appointment:
             video_data = self.fs.get(appointment['video']).read()
             appointment['video'] = video_data
         
         return appointment
 
     def get_all(self):
+
         appointments = list(self.collection.find())
         
         # Retrieve videos from GridFS if they exist
         for appointment in appointments:
-            if 'video' in appointment:
-                video_data = self.fs.get(appointment['video']).read()
-                appointment['video'] = video_data
+            video_data = self.fs.get(appointment['video']).read()
+            appointment['video'] = video_data
         
         return appointments
 
     def update(self, appointment_id, data):
-        if 'video' in data and isinstance(data['video'], bytes):
+        # self.validate(data)
+
+        if isinstance(data['video'], bytes):
             video_id = self.fs.put(data['video'], filename='appointment_video.mp4')
             data['video'] = video_id
         
@@ -60,7 +87,7 @@ class Appointment:
         appointment = self.collection.find_one({"_id": ObjectId(appointment_id)})
         
         # Delete the video from GridFS if it exists
-        if appointment and 'video' in appointment:
+        if appointment:
             self.fs.delete(appointment['video'])
         
         result = self.collection.delete_one({"_id": ObjectId(appointment_id)})

@@ -1,33 +1,46 @@
+"""File for appointment api routes and controlling routes"""
+
 from flask import Blueprint, request, jsonify, abort, send_file
 from datetime import datetime
 from io import BytesIO
+import os
 from app.models.appointment_model import Appointment  # Import the Appointment model
-from app.services.transcribe import process_video
+from app.services.process_raw_file import transcribe_audio
+from app.services.summarize import generate_subjective, generate_objective, generate_assessment, generate_plan
 
 # Define the Blueprint for the appointment controller
 appointment_bp = Blueprint('appointment_bp', __name__)
 
-# Initialize the model
 appointment_model = Appointment()
 
 @appointment_bp.route('/', methods=['POST'])
 def create_appointment():
+    # appointment
     # front end sends raw video to be processed by whisper and pyannote?
-    data = request.form.to_dict()
+    data = request.form.to_dict() 
 
     video_file = request.files['video']
-    data['video'] = video_file.read()
-    
-    process_video(video_file)
-
-    # Convert the appointment_date from string to datetime object
+    transcription = transcribe_audio(video_file)
+    processed_transcript = '\n\n'.join([f"[{segment['speaker']}] ({segment['segment_start']}-{segment['segment_end']}): {segment['segment_transcription']}" for segment in transcription])
+    # print(processed_transcript)
+    # current_dir = os.path.dirname(os.path.abspath(__file__))  # Get current directory of appointment_controller.py
+    # FILE_STORAGE_PATH = os.path.join(current_dir, '..', 'services', 'file_storage')
+    # video_path = os.path.join(FILE_STORAGE_PATH, 'temp_video.mp4')
+    # video_file.save(video_path)
+    # video_description = describe_video(video_path, processed_transcript, fps=0.1)
     try:
-        data['appointment_date'] = datetime.fromisoformat(data['appointment_date'])
-    except ValueError:
-        return jsonify({'error': 'Invalid date format'}), 400
-
-    appointment_id = appointment_model.create(data)
-    return jsonify({'_id': appointment_id}), 201
+        data['transcription'] = transcription
+        data['video'] = video_file.read()
+        data['subjective'] = generate_subjective(processed_transcript)
+        data['objective'] = generate_objective(processed_transcript)
+        data['assessment'] = generate_assessment(processed_transcript)
+        data['plan'] = generate_plan(processed_transcript)
+        data['appointment_name'] = 'Unnamed appointment'
+        data['appointment_date'] = datetime.now()
+        appointment_id = appointment_model.create(data)
+        return jsonify({'_id': appointment_id}), 201
+    except RuntimeError as e:
+        return jsonify({'error': str(e)}), 500
 
 @appointment_bp.route('/<id>', methods=['GET'])
 def get_appointment(id):
