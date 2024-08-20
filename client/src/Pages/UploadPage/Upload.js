@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import download from '../../assets/record.svg';
 import upload from '../../assets/upload.png';
 const Upload = () => {
@@ -8,6 +8,13 @@ const Upload = () => {
   const mediaRecorderRef = useRef(null);
   const recordedChunks = useRef([]);
 
+  useEffect(() => {
+    const savedVideoURL = localStorage.getItem('videoURL');
+    if (savedVideoURL) {
+      setVideoURL(savedVideoURL);
+    }
+  }, []);
+
   const sendRecording = async() => {
     if (!videoURL){
       return;
@@ -15,9 +22,9 @@ const Upload = () => {
     const blob = await fetch(videoURL).then(r => r.blob());
     const formData = new FormData();
     formData.append("video", blob, 'recording.webm');
-
+    
     try{
-      const response = await fetch('http://localhost:3001/appointments', {
+      const response = await fetch('http://localhost:3001/appointments/', {
         method: 'POST',
         body: formData,
       });
@@ -61,6 +68,7 @@ const Upload = () => {
       });
       const url = URL.createObjectURL(blob);
       setVideoURL(url);
+      localStorage.setItem('videoURL', url); 
     };
 
     mediaRecorder.start();

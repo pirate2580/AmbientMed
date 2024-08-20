@@ -18,3 +18,5 @@ langchain-openai
 tiktoken
 langgraph
 opencv-python
+langchain_text_splitters
+pytube

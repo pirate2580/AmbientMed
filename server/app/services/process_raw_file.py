@@ -18,15 +18,36 @@ import base64
 import imageio
 from io import BytesIO
 
+# def extract_audio_with_ffmpeg(video_file: bytes):
+#     """Helper function to extract audio from video using ffmpeg and return as a waveform tensor."""
+#     video_file.seek(0)
+#     command = [
+#         'ffmpeg',
+#         '-i', 'pipe:0',  # Read input from stdin
+#         '-f', 'wav',
+#         '-acodec', 'pcm_s16le',
+#         '-'
+#     ]
+#     process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#     out, err = process.communicate(input=video_file.read())
+#     if process.returncode != 0:
+#         raise RuntimeError(f"ffmpeg error: {err.decode()}")
+#     audio_buffer = io.BytesIO(out)
+#     waveform, sample_rate = torchaudio.load(audio_buffer)
+#     return waveform, sample_rate
+
 def extract_audio_with_ffmpeg(video_file: bytes):
     """Helper function to extract audio from video using ffmpeg and return as a waveform tensor."""
     video_file.seek(0)
     command = [
         'ffmpeg',
         '-i', 'pipe:0',  # Read input from stdin
+        '-vn',           # Ignore video stream
+        '-acodec', 'pcm_s16le',  # Use PCM audio codec (WAV format)
+        '-ar', '16000',  # Set sample rate to 16kHz
+        '-ac', '1',      # Mono channel
         '-f', 'wav',
-        '-acodec', 'pcm_s16le',
-        '-'
+        '-'              # Output to stdout
     ]
     process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = process.communicate(input=video_file.read())

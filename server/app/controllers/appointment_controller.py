@@ -6,7 +6,8 @@ from io import BytesIO
 import os
 from app.models.appointment_model import Appointment  # Import the Appointment model
 from app.services.process_raw_file import transcribe_audio
-from app.services.summarize import generate_subjective, generate_objective, generate_assessment, generate_plan
+from app.services.summarize import generate_soap
+# from app.services.summarize import generate_subjective, generate_objective, generate_assessment, generate_plan
 
 # Define the Blueprint for the appointment controller
 appointment_bp = Blueprint('appointment_bp', __name__)
@@ -20,8 +21,14 @@ def create_appointment():
     data = request.form.to_dict() 
 
     video_file = request.files['video']
+
     transcription = transcribe_audio(video_file)
     processed_transcript = '\n\n'.join([f"[{segment['speaker']}] ({segment['segment_start']}-{segment['segment_end']}): {segment['segment_transcription']}" for segment in transcription])
+    print(processed_transcript)
+    result = generate_soap(processed_transcript)
+    sections = result.split('<ENDOFSECTION>')
+    print(sections)
+
     # print(processed_transcript)
     # current_dir = os.path.dirname(os.path.abspath(__file__))  # Get current directory of appointment_controller.py
     # FILE_STORAGE_PATH = os.path.join(current_dir, '..', 'services', 'file_storage')
@@ -31,10 +38,10 @@ def create_appointment():
     try:
         data['transcription'] = transcription
         data['video'] = video_file.read()
-        data['subjective'] = generate_subjective(processed_transcript)
-        data['objective'] = generate_objective(processed_transcript)
-        data['assessment'] = generate_assessment(processed_transcript)
-        data['plan'] = generate_plan(processed_transcript)
+        data['subjective'] = sections[0]
+        data['objective'] = sections[1]
+        data['assessment'] = sections[2]
+        data['plan'] = sections[3]
         data['appointment_name'] = 'Unnamed appointment'
         data['appointment_date'] = datetime.now()
         appointment_id = appointment_model.create(data)
