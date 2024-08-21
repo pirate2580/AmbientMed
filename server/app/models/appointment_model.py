@@ -61,12 +61,12 @@ class Appointment:
 
     def get_all(self):
 
-        appointments = list(self.collection.find())
+        appointments = list(self.collection.find({}, {"video": 0}))
         
         # Retrieve videos from GridFS if they exist
-        for appointment in appointments:
-            video_data = self.fs.get(appointment['video']).read()
-            appointment['video'] = video_data
+        # for appointment in appointments:
+        #     video_data = self.fs.get(appointment['video']).read()
+        #     appointment['video'] = video_data
         
         return appointments
 

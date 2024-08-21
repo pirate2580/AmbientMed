@@ -54,7 +54,7 @@ def get_appointment(id):
     appointment['_id'] = str(appointment['_id'])  # Convert ObjectId to string for JSON serialization
     return jsonify(appointment), 200
 
-@appointment_bp.route('/', methods=['GET'])
+@appointment_bp.route('/all', methods=['GET'])
 def list_appointments():
     appointments = appointment_model.get_all()
     for appointment in appointments:
