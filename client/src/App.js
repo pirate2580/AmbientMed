@@ -8,7 +8,7 @@ import Login from './Pages/LoginPage/Login';
 
 const router = createBrowserRouter([
   {
-    path: "/login", 
+    path: "/asdf", 
     element: <Login/>
   },
   {

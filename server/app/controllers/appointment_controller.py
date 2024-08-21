@@ -28,13 +28,6 @@ def create_appointment():
     result = generate_soap(processed_transcript)
     sections = result.split('<ENDOFSECTION>')
     print(sections)
-
-    # print(processed_transcript)
-    # current_dir = os.path.dirname(os.path.abspath(__file__))  # Get current directory of appointment_controller.py
-    # FILE_STORAGE_PATH = os.path.join(current_dir, '..', 'services', 'file_storage')
-    # video_path = os.path.join(FILE_STORAGE_PATH, 'temp_video.mp4')
-    # video_file.save(video_path)
-    # video_description = describe_video(video_path, processed_transcript, fps=0.1)
     try:
         data['transcription'] = transcription
         data['video'] = video_file.read()
