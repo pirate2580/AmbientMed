@@ -96,7 +96,7 @@ def transcribe_audio(video_file: bytes):
         whisper_start = transcription_segments[pointer]['start']
         whisper_end = transcription_segments[pointer]['end']
         while pointer < len(transcription_segments) and (max(segment_start, whisper_start) < min(segment_end, whisper_end)):
-            final_result.append({'speaker': speaker, 'segment_start':segment_start, 'segment_end': segment_end, 'segment_transcription': transcription_segments[pointer]['text']})
+            final_result.append({'speaker': speaker, 'segment_start':whisper_start, 'segment_end': whisper_end, 'segment_transcription': transcription_segments[pointer]['text']})
             pointer += 1
             if pointer == len(transcription_segments):
                 break

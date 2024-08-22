@@ -7,6 +7,7 @@ import os
 from app.models.appointment_model import Appointment  # Import the Appointment model
 from app.services.process_raw_file import transcribe_audio
 from app.services.summarize import generate_soap
+from dateutil.parser import parse as parse_date
 # from app.services.summarize import generate_subjective, generate_objective, generate_assessment, generate_plan
 
 # Define the Blueprint for the appointment controller
@@ -36,6 +37,7 @@ def create_appointment():
         data['assessment'] = sections[2]
         data['plan'] = sections[3]
         data['appointment_name'] = 'Unnamed appointment'
+        data['patient_name'] = "Unnamed patient"
         data['appointment_date'] = datetime.now()
         appointment_id = appointment_model.create(data)
         return jsonify({'_id': appointment_id}), 201
@@ -49,7 +51,7 @@ def get_appointment(id):
         abort(404)
 
     if 'video' in appointment:
-        return send_file(BytesIO(appointment['video']), mimetype='video/mp4', as_attachment=True, download_name='appointment_video.mp4')
+        return send_file(BytesIO(appointment['video']), mimetype='video/mp4', as_attachment=False)
     
     appointment['_id'] = str(appointment['_id'])  # Convert ObjectId to string for JSON serialization
     return jsonify(appointment), 200
@@ -63,17 +65,23 @@ def list_appointments():
 
 @appointment_bp.route('/<id>', methods=['PUT'])
 def update_appointment(id):
-    data = request.form.to_dict()
+    data = request.get_json()
+    print(data)
+    # data = request.get_json()
+    # appointment_name = data'appointmentName')
+    # appointment_date = data.get('appointmentData')
+    # patient_name = data.get('patientName')
     
-    if 'video' in request.files:
-        video_file = request.files['video']
-        data['video'] = video_file.read()  # Read video file content as bytes
+    # if 'video' in request.files:
+    #     video_file = request.files['video']
+    #     data['video'] = video_file.read()  # Read video file content as bytes
     
-    if 'appointment_date' in data:
-        try:
-            data['appointment_date'] = datetime.fromisoformat(data['appointment_date'])
-        except ValueError:
-            return jsonify({'error': 'Invalid date format'}), 400
+    # if 'appointment_date' in data:
+    #     try:
+    # data['appointment_date'] = datetime.fromisoformat(data['appointment_date'])
+    data['appointment_date'] = parse_date(data['appointment_date'])
+        # except ValueError:
+        #     return jsonify({'error': 'Invalid date format'}), 400
 
     updated_count = appointment_model.update(id, data)
     if updated_count == 0:

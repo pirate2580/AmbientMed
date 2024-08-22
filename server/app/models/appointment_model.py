@@ -50,12 +50,13 @@ class Appointment:
         return str(result.inserted_id)
 
     def get_by_id(self, appointment_id):
-
-        appointment = self.collection.find_one({"_id": ObjectId(appointment_id)})
+        appointment = self.collection.find_one({"_id": ObjectId(appointment_id)}, {"video": 0})
+        transcript = appointment['transcript']
+        # appointment = self.collection.find_one({"_id": ObjectId(appointment_id)})
         # Retrieve the video from GridFS if it exists
-        if appointment:
-            video_data = self.fs.get(appointment['video']).read()
-            appointment['video'] = video_data
+        # if appointment:
+        #     video_data = self.fs.get(appointment['video']).read()
+        #     appointment['video'] = video_data
         
         return appointment
 
@@ -73,9 +74,9 @@ class Appointment:
     def update(self, appointment_id, data):
         # self.validate(data)
 
-        if isinstance(data['video'], bytes):
-            video_id = self.fs.put(data['video'], filename='appointment_video.mp4')
-            data['video'] = video_id
+        # if isinstance(data['video'], bytes):
+        #     video_id = self.fs.put(data['video'], filename='appointment_video.mp4')
+        #     data['video'] = video_id
         
         result = self.collection.update_one(
             {"_id": ObjectId(appointment_id)},

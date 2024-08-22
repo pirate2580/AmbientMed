@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import logo from '../../assets/ambientmed.png';
-
+import { useNavigate } from 'react-router';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     const response = await fetch('http://localhost:3001/auth/login', {
@@ -18,7 +19,7 @@ const Login = () => {
     if (response.ok) {
       localStorage.setItem('token', data.token);
       setMessage('Login successful');
-      // navigate('/upload');
+      navigate('/');
     } else {
       setMessage(`Error: ${data.message}`);
     }
@@ -36,7 +37,7 @@ const Login = () => {
     if (response.ok) {
       localStorage.setItem('token', data.token);
       setMessage('Registration successful');
-      // navigate('/upload');
+      navigate('/');
     } else {
       setMessage(`Error: ${data.message}`);
     }

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './SidebarComponent';
 import Header from './HeaderComponent'
-import Appointment from './Appointment';
+import Appointment from './AppointmentComponent';
 
 const Main = () => {
   const [appointments, setAppointments] = useState([]);
+  const [triggerFetch, setTriggerFetch] = useState(false);
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -22,14 +23,15 @@ const Main = () => {
 
         const appointmentData = await response.json();
         console.log('Fetched Appointments:', appointmentData); // Log the fetched data
-        setAppointments(appointmentData);
+        const sortedAppointments = appointmentData.sort((a, b) => new Date(b.appointment_date) - new Date(a.appointment_date));
+        setAppointments(sortedAppointments);
 
       } catch (error) {
         console.error("Error occurred:", error); // Log any errors
       }
     };
     fetchAppointments();
-  }, []);
+  }, [triggerFetch]);
 
   return (
     <div className="main flex h-screen overflow-hidden">
@@ -39,7 +41,11 @@ const Main = () => {
         {/* <AppointmentList appointments={appointments} /> */}
         <div className="appointments grid grid-cols-1 gap-4 p-4 overflow-y-auto">
           {appointments.map((appointment) => (
-            <Appointment appointment={appointment}/>
+            <Appointment 
+            key={appointment._id}
+            appointment={appointment}
+            onDelete={() => setTriggerFetch(!triggerFetch)}
+            />
           ))}
         </div>
       </div>
